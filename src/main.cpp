@@ -11,10 +11,10 @@
 ////////////////////////////////////////////
 //motors
 pros::Controller master(pros::E_CONTROLLER_MASTER);
-pros::Motor left_back_motor(12, pros::E_MOTOR_GEARSET_18, false);
+pros::Motor left_back_motor(13, pros::E_MOTOR_GEARSET_18, false);
 pros::Motor left_front_motor(20, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor right_back_motor(11, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor right_front_motor(19, pros::E_MOTOR_GEARSET_18, false);
+pros::Motor right_back_motor(11, pros::E_MOTOR_GEARSET_18, true);
+pros::Motor right_front_motor(19, pros::E_MOTOR_GEARSET_18, true);
 pros::MotorGroup leftMotors({left_front_motor, left_back_motor});
 pros::MotorGroup rightMotors({right_front_motor, right_back_motor});
 
@@ -40,8 +40,8 @@ lemlib::OdomSensors_t sensors {
 
 // forward/backward PID
 lemlib::ChassisController_t lateralController {
-    8, // kP
-    30, // kD
+    100, // kP
+    1, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
     3, // largeErrorRange
@@ -83,6 +83,7 @@ void screen() {
 void initialize() {
 	pros::lcd::initialize();
 	chassis.calibrate();
+    chassis.setPose(0, 0, 0);
 	pros::Task screenTask(screen); // create a task to print the position to the screen
 
 }
@@ -121,6 +122,9 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
+ chassis.moveTo(24, 0, 10, 50);
+ 		pros::delay(20);
+
 
 }
 
@@ -143,6 +147,7 @@ void opcontrol() {
 
 		leftMotors.move(master.get_analog(ANALOG_LEFT_Y));
 		rightMotors.move(master.get_analog(ANALOG_RIGHT_Y));
+        
 
 		pros::delay(20);
 	}
