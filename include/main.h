@@ -35,6 +35,12 @@
 #define PROS_USE_LITERALS
 
 #include "api.h"
+#include "lemlib/api.hpp"
+#include "Flywheel.hpp"
+#include "Intakes.hpp"
+#include "Endgame.hpp"
+#include "Ports.hpp"
+#include "drive.hpp"
 
 /**
  * You should add more #includes here
@@ -79,3 +85,15 @@ void opcontrol(void);
 #endif
 
 #endif  // _PROS_MAIN_H_
+
+
+
+
+extern pros::Controller master;
+extern pros::Motor left_back_motor;
+extern pros::Motor left_front_motor;
+extern pros::Motor right_back_motor;
+extern pros::Motor right_front_motor;
+extern pros::Motor_Group leftMotors;
+extern pros::Motor_Group rightMotors;
+extern pros::Imu imu;

@@ -1,5 +1,16 @@
 #include "main.h"
 #include "lemlib/api.hpp"
+#include "ControllerPrinter.hpp"
+#include "Endgame.hpp"
+#include "Indexer.hpp"
+#include "Intakes.hpp"
+#include "Flywheel.hpp"
+#include "pros/adi.hpp"
+#include "pros/misc.h"
+#include "pros/motors.h"
+#include "pros/motors.hpp"
+#include "pros/rtos.h"
+#include "pros/rtos.hpp"
 
 /**
  * A callback function for LLEMU's center button.
@@ -11,13 +22,16 @@
 ////////////////////////////////////////////
 //motors
 pros::Controller master(pros::E_CONTROLLER_MASTER);
-pros::Motor left_back_motor(13, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor left_front_motor(20, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor right_back_motor(11, pros::E_MOTOR_GEARSET_18, true);
-pros::Motor right_front_motor(19, pros::E_MOTOR_GEARSET_18, true);
-pros::MotorGroup leftMotors({left_front_motor, left_back_motor});
-pros::MotorGroup rightMotors({right_front_motor, right_back_motor});
-
+pros::Motor left_back_motor(8, pros::E_MOTOR_GEARSET_06, false);
+pros::Motor left_middle_motor(6, pros::E_MOTOR_GEARSET_06, true);
+pros::Motor left_front_motor(9, pros::E_MOTOR_GEARSET_06, true);
+pros::Motor right_back_motor(3, pros::E_MOTOR_GEARSET_06, true);
+pros::Motor right_middle_motor(2, pros::E_MOTOR_GEARSET_06, false);
+pros::Motor right_front_motor(1, pros::E_MOTOR_GEARSET_06, false);
+pros::MotorGroup leftMotors({left_front_motor,left_middle_motor});
+pros::MotorGroup rightMotors({right_front_motor,right_middle_motor});
+// inertial sensor
+pros::Imu imu(10); // port 2    
 
 lemlib::Drivetrain_t drivetrain {
     &leftMotors, // left drivetrain motors
@@ -26,40 +40,39 @@ lemlib::Drivetrain_t drivetrain {
     4.25, // wheel diameter
     200 // wheel rpm
 };
-// inertial sensor
-pros::Imu inertial_sensor(21); // port 2
+
  
-// odometry struct
-lemlib::OdomSensors_t sensors {
-    nullptr, // vertical tracking wheel 1
-    nullptr, // vertical tracking wheel 2
-    nullptr, // horizontal tracking wheel 1
-    nullptr, // we don't have a second tracking wheel, so we set it to nullptr
-    &inertial_sensor // inertial sensor
-};
+
 
 // forward/backward PID
 lemlib::ChassisController_t lateralController {
-    100, // kP
-    1, // kD
-    1, // smallErrorRange
+    30, // kP
+    20, // kD
+    0, // smallErrorRange
     100, // smallErrorTimeout
-    3, // largeErrorRange
+    0, // largeErrorRange   
     500, // largeErrorTimeout
-    5 // slew rate
+    0 // slew rate
 };
  
 // turning PID
 lemlib::ChassisController_t angularController {
     4, // kP
-    40, // kD
+    30, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
     3, // largeErrorRange
     500, // largeErrorTimeout
     0 // slew rate
 };
-
+// odometry struct
+lemlib::OdomSensors_t sensors {
+    nullptr, // vertical tracking wheel 1
+    nullptr, // vertical tracking wheel 2
+    nullptr, // horizontal tracking wheel 1
+    nullptr, // we don't have a second tracking wheel, so we set it to nullptr
+    &imu // inertial sensor
+};
 // create the chassis
 lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensors);
 
@@ -84,6 +97,7 @@ void initialize() {
 	pros::lcd::initialize();
 	chassis.calibrate();
     chassis.setPose(0, 0, 0);
+
 	pros::Task screenTask(screen); // create a task to print the position to the screen
 
 }
@@ -122,9 +136,11 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
- chassis.moveTo(24, 0, 10, 50);
- 		pros::delay(20);
+    //	pros::Task screenTask(screen); // create a task to print the position to the screen
 
+ //chassis.moveTo(0, 10, 10000, 60);
+ 	//	pros::delay(20);
+    //chassis.turnTo(30, 0, 10000, false, 50);
 
 }
 
@@ -142,11 +158,21 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+      //hopefully properly resets fw
+  newFlywheelVelocity(0);
 
+  pros::Task IndexerTask(IndexOPCTRL);
+  pros::Task ControllerPrintTask(PrintInfo);
+  pros::Task IntakeControlTask(Intake_Control);
+  pros::Task IntakeActuation(Intake_Actuate);
+  pros::Task Endgame(Endgame_Fire);
+
+  master.clear();
 	while (true) {
-
-		leftMotors.move(master.get_analog(ANALOG_LEFT_Y));
-		rightMotors.move(master.get_analog(ANALOG_RIGHT_Y));
+        FlywheelOPCTRL();
+        arcade_flipped();
+		
+        
         
 
 		pros::delay(20);
