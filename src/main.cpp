@@ -1,10 +1,5 @@
 #include "main.h"
 #include "lemlib/api.hpp"
-#include "ControllerPrinter.hpp"
-#include "Endgame.hpp"
-#include "Indexer.hpp"
-#include "Intakes.hpp"
-#include "Flywheel.hpp"
 #include "pros/adi.hpp"
 #include "pros/misc.h"
 #include "pros/motors.h"
@@ -158,18 +153,9 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-      //hopefully properly resets fw
-  newFlywheelVelocity(0);
-
-  pros::Task IndexerTask(IndexOPCTRL);
-  pros::Task ControllerPrintTask(PrintInfo);
-  pros::Task IntakeControlTask(Intake_Control);
-  pros::Task IntakeActuation(Intake_Actuate);
-  pros::Task Endgame(Endgame_Fire);
 
   master.clear();
 	while (true) {
-        FlywheelOPCTRL();
         arcade_flipped();
 		
         

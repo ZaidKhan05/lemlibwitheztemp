@@ -36,9 +36,6 @@
 
 #include "api.h"
 #include "lemlib/api.hpp"
-#include "Flywheel.hpp"
-#include "Intakes.hpp"
-#include "Endgame.hpp"
 #include "Ports.hpp"
 #include "drive.hpp"
 
